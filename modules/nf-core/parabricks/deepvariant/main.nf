@@ -22,17 +22,17 @@ process PARABRICKS_DEEPVARIANT {
         exit 1, "Parabricks module does not support Conda. Please use Docker / Singularity / Podman instead."
     }
 
-    def args = task.ext.args ?: '--run-partition'
+    def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
     def output_file = args =~ "gvcf" ? "${prefix}.g.vcf.gz" : "${prefix}.vcf"
-    def interval_file_command = interval_file ? interval_file.collect{"--interval-file $it"}.join(' ') : ""
+    // FIXME [Parabricks Options Error]: --run-partition cannot work with intervals
+    // def interval_file_command = interval_file && params.use_intervals ? interval_file.collect{"--interval-file $it"}.join(' ') : "--run-partition"
     """
     pbrun \\
         deepvariant \\
         --ref $fasta \\
         --in-bam $input \\
         --out-variants $output_file \\
-        $interval_file_command \\
         --num-gpus $task.accelerator.request \\
         --tmp-dir . \\
         $args
